@@ -1,20 +1,29 @@
-import Modal from 'react-modal';
-import PropTypes from 'prop-types';
+import React from "react";
+import PropTypes from "prop-types";
+import "../index.css" 
 
-function ConfirmModal({ isOpen, onClose, onConfirm }) {
+const Modal = ({ title, message, onConfirm, onCancel }) => {
   return (
-    <Modal isOpen={isOpen} onRequestClose={onClose}>
-      <h2>¿Desea eliminar?</h2>
-      <button onClick={onConfirm}>Confirmar</button>
-      <button onClick={onClose}>Cancelar</button>
-    </Modal>
+    <div className="modal">
+      <div className="modal-contentido">
+        <h2>{title}</h2>
+        <p>{message}</p>
+        <button onClick={onConfirm} className="btn">
+          Confirmar
+        </button>
+        <button onClick={onCancel} className="btn btn-eliminar">
+          Cancelar
+        </button>
+      </div>
+    </div>
   );
-}
-
-ConfirmModal.propTypes = {
-  isOpen: PropTypes.bool.isRequired,
-  onClose: PropTypes.func.isRequired,
-  onConfirm: PropTypes.func.isRequired,
 };
 
-export default ConfirmModal;
+Modal.propTypes = {
+  title: PropTypes.string.isRequired,
+  message: PropTypes.string.isRequired,
+  onConfirm: PropTypes.func.isRequired,
+  onCancel: PropTypes.func.isRequired,
+};
+
+export default Modal;
