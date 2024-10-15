@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import PropTypes from 'prop-types';
 import axios from 'axios';
 import Modal from './Modal';
-import "../index.css"
 
 const TaskList = () => {
   const [tasks, setTasks] = useState([]);
@@ -15,11 +13,18 @@ const TaskList = () => {
   }, []);
 
   const fetchTasks = async () => {
-    try {
-      const response = await axios.get('https://jsonplaceholder.typicode.com/todos');
-      setTasks(response.data.slice(0,10)); 
-    } catch (error) {
-      console.error('Error al cargar tareas:', error);
+    const storedTasks = JSON.parse(localStorage.getItem('tasks'));
+    if (storedTasks && storedTasks.length > 0) {
+      setTasks(storedTasks); 
+    } else {
+      try {
+        const response = await axios.get('https://jsonplaceholder.typicode.com/todos');
+        const limitedTasks = response.data.slice(0, 10); 
+        setTasks(limitedTasks);
+        localStorage.setItem('tasks', JSON.stringify(limitedTasks)); 
+      } catch (error) {
+        console.error('Error cargando tareas:', error);
+      }
     }
   };
 
@@ -31,15 +36,12 @@ const TaskList = () => {
     setDeleteTaskId(id);
   };
 
-  const confirmDelete = async () => {
+  const confirmDelete = () => {
     if (deleteTaskId) {
-      try {
-        await axios.delete(`https://jsonplaceholder.typicode.com/todos/${deleteTaskId}`);
-        setTasks(tasks.filter(task => task.id !== deleteTaskId));
-        setDeleteTaskId(null);
-      } catch (error) {
-        console.error('Error al borrar tarea:', error);
-      }
+      const updatedTasks = tasks.filter(task => task.id !== deleteTaskId);
+      setTasks(updatedTasks);
+      localStorage.setItem('tasks', JSON.stringify(updatedTasks)); 
+      setDeleteTaskId(null);
     }
   };
 
@@ -50,7 +52,7 @@ const TaskList = () => {
         {tasks.map(task => (
           <li key={task.id} className="task-item">
             <span>{task.title}</span>
-            <div className='botones'>
+            <div>
               <button onClick={() => handleEdit(task.id)} className="btn">Editar</button>
               <button onClick={() => handleDelete(task.id)} className="btn btn-eliminar">Eliminar</button>
             </div>
@@ -60,23 +62,13 @@ const TaskList = () => {
       {deleteTaskId && (
         <Modal
           title="Confirmar eliminar"
-          message="Esta seguro de que quiere eliminar esta tarea?"
+          message="¿Está seguro de que quiere eliminar?"
           onConfirm={confirmDelete}
           onCancel={() => setDeleteTaskId(null)}
         />
       )}
     </div>
   );
-};
-
-TaskList.propTypes = {
-  tasks: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.number.isRequired,
-      title: PropTypes.string.isRequired,
-      completed: PropTypes.bool.isRequired,
-    })
-  ),
 };
 
 export default TaskList;

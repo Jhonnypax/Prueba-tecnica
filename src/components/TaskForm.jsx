@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import PropTypes from 'prop-types';
-import axios from 'axios';
-import "../index.css"
 
 const TaskForm = () => {
   const [task, setTask] = useState({ id: 0, title: '', completed: false });
@@ -15,27 +12,28 @@ const TaskForm = () => {
     }
   }, [id]);
 
-  const fetchTask = async (taskId) => {
-    try {
-      const response = await axios.get(`https://jsonplaceholder.typicode.com/todos/${taskId}`);
-      setTask(response.data);
-    } catch (error) {
-      console.error('Error cargando tarea:', error);
+  const fetchTask = (taskId) => {
+    const storedTasks = JSON.parse(localStorage.getItem('tasks')) || [];
+    const foundTask = storedTasks.find(task => task.id === taskId);
+    if (foundTask) {
+      setTask(foundTask);
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    try {
-      if (id) {
-        await axios.put(`https://jsonplaceholder.typicode.com/todos/${id}`, task);
-      } else {
-        await axios.post('https://jsonplaceholder.typicode.com/todos', task);
-      }
-      navigate('/');
-    } catch (error) {
-      console.error('Error al guardar tarea:', error);
+    const storedTasks = JSON.parse(localStorage.getItem('tasks')) || [];
+
+    if (id) {
+      const updatedTasks = storedTasks.map(t => (t.id === parseInt(id) ? task : t));
+      localStorage.setItem('tasks', JSON.stringify(updatedTasks));
+    } else {
+      const newTask = { ...task, id: storedTasks.length + 1 }; 
+      storedTasks.push(newTask);
+      localStorage.setItem('tasks', JSON.stringify(storedTasks));
     }
+
+    navigate('/');
   };
 
   const handleChange = (e) => {
@@ -45,10 +43,10 @@ const TaskForm = () => {
 
   return (
     <div>
-      <h2>{id ? 'Editar tarea' : 'Crear nueva tarea'}</h2>
+      <h2>{id ? 'Editar Tarea' : 'Crear nueva tarea'}</h2>
       <form onSubmit={handleSubmit} className="task-form">
         <div className="form-group">
-          <label>Titulo:</label>
+          <label>Título:</label>
           <input
             type="text"
             id="title"
@@ -62,14 +60,6 @@ const TaskForm = () => {
       </form>
     </div>
   );
-};
-
-TaskForm.propTypes = {
-  task: PropTypes.shape({
-    id: PropTypes.number,
-    title: PropTypes.string,
-    completed: PropTypes.bool,
-  }),
 };
 
 export default TaskForm;
