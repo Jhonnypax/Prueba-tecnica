@@ -8,7 +8,7 @@ const TaskList = () => {
   const [deleteTaskId, setDeleteTaskId] = useState(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
+  useEffect(() => { 
     fetchTasks();
   }, []);
 
